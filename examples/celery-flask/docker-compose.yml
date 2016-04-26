@@ -1,0 +1,44 @@
+version: '2'
+
+services:
+
+  celery-broker:
+    image: rabbitmq:3-management
+    ports:
+      - 8080:15672
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=password
+
+  celery-result-backend:
+    image: redis:alpine
+
+  worker:
+    build: .
+    command: celery worker --app application.tasks.celery
+    links:
+      - celery-broker
+      - celery-result-backend
+    volumes:
+      - ./:/app/
+    environment:
+      - CELERY_USER=admin
+      - CELERY_PASSWORD=password
+      - COMPOSE_TALK_CONF=compose
+      - C_FORCE_ROOT=true
+
+  web:
+    build: .
+    command: python run_app.py
+    links:
+      - celery-broker
+      - celery-result-backend
+    ports:
+      - 5000:5000
+    volumes:
+      - ./:/app/
+    environment:
+      - CELERY_USER=admin
+      - CELERY_PASSWORD=password
+      - COMPOSE_TALK_CONF=compose
+      - WERKZEUG_DEBUG_PIN=off
