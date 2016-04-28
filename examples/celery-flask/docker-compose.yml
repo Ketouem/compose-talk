@@ -12,6 +12,8 @@ services:
 
   celery-result-backend:
     image: redis:alpine
+    ports:
+      - 6379 
 
   worker:
     build: .
@@ -42,3 +44,4 @@ services:
       - CELERY_PASSWORD=password
       - COMPOSE_TALK_CONF=compose
       - WERKZEUG_DEBUG_PIN=off
+

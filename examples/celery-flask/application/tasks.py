@@ -1,5 +1,5 @@
 import os
-import time
+import requests
 
 from . import create_app
 
@@ -10,6 +10,13 @@ app = create_app(
 
 celery = app.celery
 
+
 @celery.task()
 def add_together(a, b):
     return a + b
+
+
+@celery.task()
+def fetch_page(url):
+    p = requests.get(url, verify=False)
+    return p.content

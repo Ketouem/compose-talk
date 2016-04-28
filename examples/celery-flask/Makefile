@@ -9,3 +9,7 @@ clean: clean-docker clean-python
 
 build:
 	docker-compose build --no-cache
+
+serve:
+	docker-compose up -d
+

@@ -2,7 +2,7 @@ from http import HTTPStatus as httplib
 
 from flask import Blueprint, current_app, jsonify, request
 
-from .tasks import add_together
+from .tasks import add_together, fetch_page
 
 main = Blueprint('main', __name__)
 
@@ -11,12 +11,14 @@ main = Blueprint('main', __name__)
 def ping():
     return "Pong !"
 
+
 @main.route('/workers')
 def workers():
     workers = current_app.celery.control.inspect().stats()
-    # return jsonify({'workers': list(workers.keys())})
+    return jsonify({'workers': list(workers.keys())})
     # The above line causes a TypeError when there is no running workers
-    return jsonify({'workers': list(workers.keys()) if workers else []})
+    # return jsonify({'workers': list(workers.keys()) if workers else []})
+
 
 @main.route('/worker/<worker_key>')
 def worker(worker_key):
@@ -30,6 +32,7 @@ def worker(worker_key):
         r = jsonify(worker)
     return r
 
+
 @main.route('/add', methods=['POST'])
 def add():
     if request.headers.get('Content-Type') == 'application/json':
@@ -37,3 +40,11 @@ def add():
         b = request.json.get('b')
         result = add_together.delay(a, b)
         return str(result.wait())
+
+
+@main.route('/fetch', methods=['POST'])
+def fetch():
+    if request.headers.get('Content-Type') == 'application/json':
+        url = request.json.get('url')
+        result = fetch_page.delay(url)
+        return result.wait()
